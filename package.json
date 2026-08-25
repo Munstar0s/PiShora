@@ -1,12 +1,49 @@
 {
 	"name": "pi-shora",
 	"version": "0.1.0",
-	"description": "Multi-model deliberation (OpenRouter fusion-style) as a native pi extension",
+	"description": "Multi-model deliberation (OpenRouter fusion-style) as a native pi coding-agent extension",
+	"keywords": [
+		"pi-package",
+		"pi-extension",
+		"openrouter",
+		"fusion",
+		"multi-model",
+		"deliberation",
+		"ai",
+		"llm"
+	],
+	"license": "MIT",
+	"author": "",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/star0s/Pi-Shora.git"
+	},
+	"homepage": "https://github.com/star0s/Pi-Shora#readme",
+	"bugs": {
+		"url": "https://github.com/star0s/Pi-Shora/issues"
+	},
 	"type": "module",
+	"engines": {
+		"node": ">=20"
+	},
+	"files": [
+		"src/",
+		"README.md",
+		"fusion-doc.md",
+		"implementation-plan.md"
+	],
 	"pi": {
 		"extensions": [
 			"./src/index.ts"
 		]
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit --skipLibCheck --module esnext --moduleResolution bundler --target es2022 src/index.ts",
+		"prepublishOnly": "npm run typecheck"
+	},
+	"peerDependencies": {
+		"@earendil-works/pi-coding-agent": "*",
+		"typebox": "*"
 	},
 	"devDependencies": {
 		"@earendil-works/pi-coding-agent": "^0.84.3",
