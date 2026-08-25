@@ -2,6 +2,17 @@
 
 Multi-model deliberation ("fusion") as a native [pi](https://github.com/earendil-works/pi-coding-agent) coding-agent extension.
 
+## The name
+
+**Shūra** (Arabic: شُورَىٰ) means *consultation*, *counsel*, or *deliberation*. It refers to the
+traditional practice of collective decision-making and mutual advisory in community or governance
+affairs — a principle of seeking multiple perspectives before reaching a conclusion.
+
+Pi-Shora brings that same principle to your AI workflow: instead of relying on a single model,
+it convenes a *shūra* — a panel of models that independently answer your question, an analyst that
+compares their perspectives, and a judge that synthesizes the best verdict. The etymology is the
+feature.
+
 A panel of up to 8 models answers your prompt independently and in parallel, an analyst model compares all responses (consensus, contradictions, partial coverage, unique insights, blind spots), and a judge model synthesizes the final verdict. Every raw response is persisted to disk; only a pointer to the verdict enters the chat.
 
 ## Install

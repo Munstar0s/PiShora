@@ -5,15 +5,20 @@
 	"keywords": [
 		"pi-package",
 		"pi-extension",
+		"pi-agent",
+		"pi-coding-agent",
+		"extension",
 		"openrouter",
+		"openrouter fusion",
 		"fusion",
 		"multi-model",
 		"deliberation",
+		"fusion harness",
 		"ai",
 		"llm"
 	],
 	"license": "MIT",
-	"author": "",
+	"author": "Munstar0s",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/star0s/Pi-Shora.git"
