@@ -1,0 +1,17 @@
+{
+	"name": "pi-shora",
+	"version": "0.1.0",
+	"description": "Multi-model deliberation (OpenRouter fusion-style) as a native pi extension",
+	"type": "module",
+	"pi": {
+		"extensions": [
+			"./src/index.ts"
+		]
+	},
+	"devDependencies": {
+		"@earendil-works/pi-coding-agent": "^0.84.3",
+		"@types/node": "^26.2.0",
+		"typebox": "^1.3.18",
+		"typescript": "^7.0.2"
+	}
+}
