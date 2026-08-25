@@ -6,6 +6,10 @@ import {
 	listTemplates,
 	loadTemplate,
 	deleteTemplate,
+	saveTemplate,
+	MAIN_TEMPLATE,
+	mainTemplateReady,
+	type PiShoraConfig,
 } from "./config";
 import { listTasks } from "./tasks";
 import { getOpenRouterAuth } from "./resolve";
@@ -86,14 +90,112 @@ export default function piShora(pi: ExtensionAPI) {
 }
 
 // ---------------------------------------------------------------------------
+// Main template — the default configuration the user defines on first use
+// ---------------------------------------------------------------------------
+
+/**
+ * Ensure a usable 'main' template exists before launching a deliberation.
+ * If it doesn't, interactively prompt the user to pick models for each role
+ * and save the result as the 'main' template. This runs for BOTH user commands
+ * and agent-initiated deliberations — the agent path is still interactive here
+ * because this is a one-time setup, not a cost confirmation.
+ */
+async function ensureMainTemplate(ctx: any): Promise<PiShoraConfig> {
+	const cfg = loadConfig();
+
+	// Already configured via main template?
+	if (mainTemplateReady()) return cfg;
+
+	// Backwards-compat: migrate inline cfg.roles to a main template if present
+	if (cfg.roles.judge.model && cfg.roles.analyst.model && cfg.roles.panel.length > 0) {
+		saveTemplate(MAIN_TEMPLATE, cfg.roles, {});
+		cfg.defaults.template = MAIN_TEMPLATE;
+		saveConfig(cfg);
+		return cfg;
+	}
+
+	// Need to prompt. If no UI (print mode, JSON mode), we can't.
+	if (!ctx.hasUI) {
+		throw new Error(
+			"No 'main' template configured. Run /pi-shora and use the judge, analyst, and panel commands to set up your default models, " +
+				"or save a template named 'main'."
+		);
+	}
+
+	ctx.ui.notify(
+		"Pi-Shora needs a default model configuration. Let's set up your 'main' template.\n" +
+			"You can change these anytime with /pi-shora judge, /pi-shora analyst, /pi-shora panel commands.\n" +
+			"Tip: browse models at https://openrouter.ai/models",
+		"info"
+	);
+
+	const judge = await ctx.ui.input(
+		"Pi-Shora setup — Judge model",
+		"Enter the model slug for the judge (writes the final answer), e.g. anthropic/claude-opus-5"
+	);
+	if (!judge?.trim()) throw new Error("Setup cancelled — no judge model provided");
+
+	const analyst = await ctx.ui.input(
+		"Pi-Shora setup — Analyst model",
+		"Enter the model slug for the analyst (compares panel responses), e.g. openai/gpt-5.6-luna"
+	);
+	if (!analyst?.trim()) throw new Error("Setup cancelled — no analyst model provided");
+
+	const panelInput = await ctx.ui.input(
+		"Pi-Shora setup — Panel models",
+		"Enter 1–8 panel model slugs (comma-separated), e.g. google/gemini-3.7-flash, openai/gpt-5.6-luna, anthropic/claude-opus-5"
+	);
+	if (!panelInput?.trim()) throw new Error("Setup cancelled — no panel models provided");
+	const panel = panelInput.split(",").map((s: string) => s.trim()).filter(Boolean);
+	if (panel.length === 0 || panel.length > 8) throw new Error("Panel must have 1–8 models");
+
+	const fallback = await ctx.ui.input(
+		"Pi-Shora setup — Analyst fallback (optional)",
+		"Enter a fallback analyst model (used if primary produces garbage), or press Enter to skip"
+	);
+
+	const roles: PiShoraConfig["roles"] = {
+		judge: { model: judge.trim() },
+		analyst: { model: analyst.trim() },
+		analystFallback: fallback?.trim() || undefined,
+		panel,
+	};
+
+	// Validate all at once
+	await validateModelRefWarn(ctx, judge.trim(), analyst.trim(), ...panel);
+	if (fallback?.trim()) await validateModelRefWarn(ctx, fallback.trim());
+
+	// Save as the main template AND set as active config
+	saveTemplate(MAIN_TEMPLATE, roles, {});
+	cfg.roles = roles;
+	cfg.defaults.template = MAIN_TEMPLATE;
+	saveConfig(cfg);
+
+	ctx.ui.notify("✓ 'main' template saved. Modify it anytime with /pi-shora judge, analyst, or panel commands.", "info");
+	return cfg;
+}
+
+/**
+ * After the user changes any role via commands, sync the change back to the
+ * main template so launches stay consistent.
+ */
+function syncMainTemplate(cfg: PiShoraConfig): void {
+	const name = cfg.defaults.template ?? MAIN_TEMPLATE;
+	saveTemplate(name, cfg.roles, {});
+}
+
+// ---------------------------------------------------------------------------
 // Widget / status rendering
 // ---------------------------------------------------------------------------
 
 function updateWidget(ctx: any, running: Map<string, { name: string; startedAt: number }>): void {
 	const cfg = loadConfig();
+	const ready = mainTemplateReady();
 	if (running.size === 0) {
 		ctx.ui.setWidget?.("pi-shora", [
-			`pi-shora: idle (panel=${cfg.roles.panel.length}, judge=${cfg.roles.judge.model})`,
+			ready
+				? `pi-shora: idle (panel=${cfg.roles.panel.length}, judge=${cfg.roles.judge.model})`
+				: `pi-shora: ⚠ no 'main' template — run /pi-shora to configure`,
 		]);
 	} else {
 		const lines = [`pi-shora: ${running.size} deliberation(s) running`];
@@ -181,6 +283,7 @@ async function handleCommand(
 			await validateModelRefWarn(ctx, ref);
 			cfg.roles.judge = { model: ref };
 			saveConfig(cfg);
+			syncMainTemplate(cfg);
 			ctx.ui.notify(`Judge (outer/final-answer) model set: ${ref}`, "info");
 			return;
 		}
@@ -189,14 +292,7 @@ async function handleCommand(
 			await validateModelRefWarn(ctx, ref);
 			cfg.roles.analyst = { model: ref };
 			saveConfig(cfg);
-			ctx.ui.notify(`Analyst model set: ${ref}`, "info");
-			return;
-		}
-		case "analyst": {
-			const ref = rest.join(" ");
-			await validateModelRefWarn(ctx, ref);
-			cfg.roles.analyst = { model: ref };
-			saveConfig(cfg);
+			syncMainTemplate(cfg);
 			ctx.ui.notify(`Analyst model set: ${ref}`, "info");
 			return;
 		}
@@ -205,12 +301,14 @@ async function handleCommand(
 			if (!arg || arg === "off") {
 				cfg.roles.analystFallback = undefined;
 				saveConfig(cfg);
+				syncMainTemplate(cfg);
 				ctx.ui.notify("Analyst fallback disabled.", "info");
 				return;
 			}
 			await validateModelRefWarn(ctx, arg);
 			cfg.roles.analystFallback = arg;
 			saveConfig(cfg);
+			syncMainTemplate(cfg);
 			ctx.ui.notify(`Analyst fallback set: ${arg}`, "info");
 			return;
 		}
@@ -302,6 +400,7 @@ async function handlePanel(args: string[], cfg: any, ctx: any): Promise<void> {
 			const rejected = refs.slice(room);
 			cfg.roles.panel.push(...accepted);
 			saveConfig(cfg);
+			syncMainTemplate(cfg);
 			await validateModelRefWarn(ctx, ...accepted);
 			let msg = `Added ${accepted.length} panel member(s) (${cfg.roles.panel.length}/${cfg.limits.maxPanelSize}):\n  ${accepted.join("\n  ")}`;
 			if (rejected.length) {
@@ -328,6 +427,7 @@ async function handlePanel(args: string[], cfg: any, ctx: any): Promise<void> {
 			}
 			cfg.roles.panel = refs;
 			saveConfig(cfg);
+			syncMainTemplate(cfg);
 			await validateModelRefWarn(ctx, ...refs);
 			ctx.ui.notify(`Panel replaced (${refs.length}/${cfg.limits.maxPanelSize}):\n  ${refs.join("\n  ")}`, "info");
 			return;
@@ -340,12 +440,14 @@ async function handlePanel(args: string[], cfg: any, ctx: any): Promise<void> {
 			}
 			const [removed] = cfg.roles.panel.splice(i - 1, 1);
 			saveConfig(cfg);
+			syncMainTemplate(cfg);
 			ctx.ui.notify(`Panel member removed: ${removed}`, "info");
 			return;
 		}
 		case "clear":
 			cfg.roles.panel = [];
 			saveConfig(cfg);
+			syncMainTemplate(cfg);
 			ctx.ui.notify("Panel cleared.", "info");
 			return;
 		default:
@@ -444,11 +546,13 @@ function renderRunning(running: Map<string, { name: string; startedAt: number }>
 
 function showStatus(ctx: any, running: Map<string, { name: string; startedAt: number }>): void {
 	const cfg = loadConfig();
+	const ready = mainTemplateReady();
 	const tasks = listTasks();
 	const lines = [
 		"Pi-Shora status",
-		`  judge:   ${cfg.roles.judge.model}`,
-		`  analyst: ${cfg.roles.analyst.model}`,
+		`  main template: ${ready ? "✓ configured" : "⚠ not configured — run /pi-shora to set up"}`,
+		`  judge:   ${cfg.roles.judge.model || "(not set)"}`,
+		`  analyst: ${cfg.roles.analyst.model || "(not set)"}`,
 		panelSummary(cfg),
 		`  default template: ${cfg.defaults.template ?? "(none)"}`,
 		`  credit limit: ${cfg.limits.creditLimit === null ? "not set" : `$${cfg.limits.creditLimit}`}`,
@@ -484,6 +588,12 @@ async function launchCore(
 
 	await getOpenRouterAuth(ctx); // throws with a helpful message if unconfigured
 
+	// ---- Ensure a 'main' template exists before anything else ------------
+	// This is interactive even for agent-initiated runs because it's a one-time
+	// setup, not a cost confirmation. If the user has no UI (print/JSON mode)
+	// and no template is configured, this throws with guidance.
+	await ensureMainTemplate(ctx);
+
 	// ---- Cost guardrails (hybrid: always show estimate; ask/block at limits) ----
 	const cfg = loadConfig();
 	let estText = "(estimate unavailable — pricing catalog not fetched)";
@@ -492,7 +602,9 @@ async function launchCore(
 	try {
 		const { apiKey, baseUrl } = await getOpenRouterAuth(ctx);
 		const prices = await getPricing(apiKey, baseUrl);
-		const roles = template ? loadTemplate(template)?.roles ?? cfg.roles : cfg.roles;
+		// Resolve roles: explicit template wins; otherwise use the default (main) template
+		const tplName = template ?? cfg.defaults.template ?? MAIN_TEMPLATE;
+		const roles = loadTemplate(tplName)?.roles ?? cfg.roles;
 		const fullPrompt = req.extraContext ? `${prompt}\n\nADDITIONAL CONTEXT:\n${req.extraContext}` : prompt;
 		const estimate = estCost({
 			panel: roles.panel,

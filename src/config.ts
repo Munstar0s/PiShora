@@ -45,14 +45,10 @@ export interface PiShoraConfig {
 
 export const DEFAULT_CONFIG: PiShoraConfig = {
 	roles: {
-		judge: { model: "anthropic/claude-opus-5" },
-		analyst: { model: "openai/gpt-5.6-luna" },
-		analystFallback: "google/gemini-3.7-flash",
-		panel: [
-			"google/gemini-3.7-flash",
-			"openai/gpt-5.6-luna",
-			"anthropic/claude-opus-5",
-		],
+		judge: { model: "" },
+		analyst: { model: "" },
+		analystFallback: undefined,
+		panel: [],
 	},
 	limits: {
 		creditLimit: null,
@@ -60,9 +56,22 @@ export const DEFAULT_CONFIG: PiShoraConfig = {
 		maxPanelSize: 8,
 		perCallTimeoutMs: 300_000,
 	},
-	defaults: { template: null, webSearchOnPanel: true },
+	defaults: { template: "main", webSearchOnPanel: true },
 	usage: [],
 };
+
+/** Name of the default template that serves as the user's baseline configuration. */
+export const MAIN_TEMPLATE = "main";
+
+/** Check whether a usable main template exists (has models for all roles). */
+export function mainTemplateReady(): boolean {
+	const tpl = loadTemplate(MAIN_TEMPLATE);
+	return !!(
+		tpl?.roles?.judge?.model &&
+		tpl?.roles?.analyst?.model &&
+		tpl?.roles?.panel?.length > 0
+	);
+}
 
 // ---------------------------------------------------------------------------
 // Config load / save

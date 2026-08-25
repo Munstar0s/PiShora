@@ -26,6 +26,10 @@ pi install git:github.com/Munstar0s/PiShora  # from GitHub
 
 The extension reuses the OpenRouter API key already configured in pi (via `/model`) or falls back to `$OPENROUTER_API_KEY`.
 
+### First-run setup
+
+On first use (either via `/pi-shora '<prompt>'` or when the agent auto-launches a deliberation), Pi-Shora will prompt you to select models for each role — judge, analyst, and panel. These choices are saved as your **`main` template**, which serves as the default configuration for all future deliberations. You can modify it anytime with the `/pi-shora judge`, `/pi-shora analyst`, and `/pi-shora panel` commands, or save additional named templates with `/pi-shora template save <name>`.
+
 ## Usage
 
 **From you (the user):**

@@ -191,11 +191,13 @@ export async function runDeliberation(
 
 	// ---- Resolve configuration -------------------------------------------
 	const cfg = loadConfig();
-	let roles = cfg.roles;
-	if (opts.template) {
-		const tpl = loadTemplate(opts.template);
-		if (!tpl) throw new Error(`Template not found: ${opts.template}`);
-		roles = tpl.roles;
+	// Resolve roles: explicit template wins; otherwise use the default (main) template
+	const tplName = opts.template ?? cfg.defaults.template ?? "main";
+	const tpl = loadTemplate(tplName);
+	if (!tpl) throw new Error(`Template not found: ${tplName}. Run /pi-shora to configure your default models.`);
+	const roles = tpl.roles;
+	if (!roles.judge?.model || !roles.analyst?.model || roles.panel.length === 0) {
+		throw new Error("Models not configured. Run /pi-shora to set up your default model configuration.");
 	}
 	const panelModels = opts.panelOverride ?? roles.panel;
 	if (panelModels.length === 0) throw new Error("Panel is empty — add models via /pi-shora panel add");
