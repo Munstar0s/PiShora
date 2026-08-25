@@ -175,15 +175,6 @@ async function ensureMainTemplate(ctx: any): Promise<PiShoraConfig> {
 	return cfg;
 }
 
-/**
- * After the user changes any role via commands, sync the change back to the
- * main template so launches stay consistent.
- */
-function syncMainTemplate(cfg: PiShoraConfig): void {
-	const name = cfg.defaults.template ?? MAIN_TEMPLATE;
-	saveTemplate(name, cfg.roles, {});
-}
-
 // ---------------------------------------------------------------------------
 // Widget / status rendering
 // ---------------------------------------------------------------------------
@@ -283,7 +274,6 @@ async function handleCommand(
 			await validateModelRefWarn(ctx, ref);
 			cfg.roles.judge = { model: ref };
 			saveConfig(cfg);
-			syncMainTemplate(cfg);
 			ctx.ui.notify(`Judge (outer/final-answer) model set: ${ref}`, "info");
 			return;
 		}
@@ -292,7 +282,6 @@ async function handleCommand(
 			await validateModelRefWarn(ctx, ref);
 			cfg.roles.analyst = { model: ref };
 			saveConfig(cfg);
-			syncMainTemplate(cfg);
 			ctx.ui.notify(`Analyst model set: ${ref}`, "info");
 			return;
 		}
@@ -301,14 +290,12 @@ async function handleCommand(
 			if (!arg || arg === "off") {
 				cfg.roles.analystFallback = undefined;
 				saveConfig(cfg);
-				syncMainTemplate(cfg);
 				ctx.ui.notify("Analyst fallback disabled.", "info");
 				return;
 			}
 			await validateModelRefWarn(ctx, arg);
 			cfg.roles.analystFallback = arg;
 			saveConfig(cfg);
-			syncMainTemplate(cfg);
 			ctx.ui.notify(`Analyst fallback set: ${arg}`, "info");
 			return;
 		}
@@ -400,7 +387,6 @@ async function handlePanel(args: string[], cfg: any, ctx: any): Promise<void> {
 			const rejected = refs.slice(room);
 			cfg.roles.panel.push(...accepted);
 			saveConfig(cfg);
-			syncMainTemplate(cfg);
 			await validateModelRefWarn(ctx, ...accepted);
 			let msg = `Added ${accepted.length} panel member(s) (${cfg.roles.panel.length}/${cfg.limits.maxPanelSize}):\n  ${accepted.join("\n  ")}`;
 			if (rejected.length) {
@@ -427,7 +413,6 @@ async function handlePanel(args: string[], cfg: any, ctx: any): Promise<void> {
 			}
 			cfg.roles.panel = refs;
 			saveConfig(cfg);
-			syncMainTemplate(cfg);
 			await validateModelRefWarn(ctx, ...refs);
 			ctx.ui.notify(`Panel replaced (${refs.length}/${cfg.limits.maxPanelSize}):\n  ${refs.join("\n  ")}`, "info");
 			return;
@@ -440,14 +425,12 @@ async function handlePanel(args: string[], cfg: any, ctx: any): Promise<void> {
 			}
 			const [removed] = cfg.roles.panel.splice(i - 1, 1);
 			saveConfig(cfg);
-			syncMainTemplate(cfg);
 			ctx.ui.notify(`Panel member removed: ${removed}`, "info");
 			return;
 		}
 		case "clear":
 			cfg.roles.panel = [];
 			saveConfig(cfg);
-			syncMainTemplate(cfg);
 			ctx.ui.notify("Panel cleared.", "info");
 			return;
 		default:
