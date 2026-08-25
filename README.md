@@ -1,5 +1,7 @@
 # Pi-Shora
 
+[![npm version](https://img.shields.io/npm/v/@munstar0s/pi-shora.svg)](https://www.npmjs.com/package/@munstar0s/pi-shora)
+
 Multi-model deliberation ("fusion") as a native [pi](https://github.com/earendil-works/pi-coding-agent) coding-agent extension.
 
 ## The name
