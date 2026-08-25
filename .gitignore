@@ -1,3 +1,8 @@
 node_modules/
 *.tsbuildinfo
 .DS_Store
+
+# Dev-only files — not tracked or shipped
+scripts/
+fusion-doc.md
+implementation-plan.md

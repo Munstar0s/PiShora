@@ -34,8 +34,7 @@
 	"files": [
 		"src/",
 		"README.md",
-		"fusion-doc.md",
-		"implementation-plan.md"
+		"LICENSE"
 	],
 	"pi": {
 		"extensions": [
