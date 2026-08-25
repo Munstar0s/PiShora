@@ -1,5 +1,5 @@
 {
-	"name": "pi-shora",
+	"name": "@munstar0s/pi-shora",
 	"version": "0.1.0",
 	"description": "Multi-model deliberation (OpenRouter fusion-style) as a native pi coding-agent extension",
 	"keywords": [
@@ -21,11 +21,11 @@
 	"author": "Munstar0s",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/star0s/Pi-Shora.git"
+		"url": "git+https://github.com/Munstar0s/PiShora.git"
 	},
-	"homepage": "https://github.com/star0s/Pi-Shora#readme",
+	"homepage": "https://github.com/Munstar0s/PiShora#readme",
 	"bugs": {
-		"url": "https://github.com/star0s/Pi-Shora/issues"
+		"url": "https://github.com/Munstar0s/PiShora/issues"
 	},
 	"type": "module",
 	"engines": {

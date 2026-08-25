@@ -18,7 +18,8 @@ A panel of up to 8 models answers your prompt independently and in parallel, an 
 ## Install
 
 ```bash
-ln -s /path/to/Pi-Shora ~/.pi/agent/extensions/pi-shora
+pi install npm:@munstar0s/pi-shora        # from npm
+pi install git:github.com/Munstar0s/PiShora  # from GitHub
 ```
 
 The extension reuses the OpenRouter API key already configured in pi (via `/model`) or falls back to `$OPENROUTER_API_KEY`.
@@ -90,4 +91,4 @@ Degradation ladder: some panels fail → continue with `failedModels` noted; ana
 
 Model refs (`~vendor/model` or plain `vendor/model`) flow through `src/resolve.ts` so v2 can add local/private endpoints without touching the pipeline.
 
-See `implementation-plan.md` for the full design and `fusion-doc.md` for how OpenRouter's native fusion feature works.
+
