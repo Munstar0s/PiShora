@@ -38,6 +38,8 @@ The extension reuses the OpenRouter API key already configured in pi (via `/mode
 /pi-shora panel list | remove <n> | clear
 /pi-shora template save|use|show|delete|list [name]             # named role configurations
 /pi-shora limit 10                                              # hard credit usage limit (USD)
+/pi-shora timeout 600                                           # per-model call timeout in seconds (default 300)
+/pi-shora analyst-fallback <model-ref>                          # fallback analyst if primary produces garbage
 /pi-shora credits                                               # OpenRouter balance
 /pi-shora status                                                # live runs + config
 /pi-shora open <task-id>                                        # locate a task directory

@@ -1,6 +1,6 @@
 {
 	"name": "@munstar0s/pi-shora",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Multi-model deliberation (OpenRouter fusion-style) as a native pi coding-agent extension",
 	"keywords": [
 		"pi-package",
