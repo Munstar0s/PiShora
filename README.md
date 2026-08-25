@@ -47,6 +47,10 @@ The extension reuses the OpenRouter API key already configured in pi (via `/mode
 
 **From the agent:** a `pi_shora_deliberate` tool is registered in every session. The agent invokes it when a task genuinely benefits from multiple perspectives (complex plans, architectural decisions, second opinions). It fires in the background and the agent receives a follow-up message pointing at the final verdict file.
 
+### Concurrent deliberations
+
+Multiple deliberations can run at the same time — each independently configured with its own models via templates. Launch several in sequence and they run in parallel (up to `maxConcurrentTasks`, default 3). A live widget above the editor shows all running deliberations and their elapsed time; you'll get a separate notification and follow-up message for each one as it completes.
+
 ## Roles
 
 | Role | Purpose | Default |
