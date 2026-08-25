@@ -1,6 +1,6 @@
 # Pi-Shora
 
-[![npm version](https://img.shields.io/npm/v/@munstar0s/pi-shora.svg)](https://www.npmjs.com/package/@munstar0s/pi-shora)
+[![npm version](https://img.shields.io/npm/v/@munstar0s/pishora.svg)](https://www.npmjs.com/package/@munstar0s/pishora)
 
 Multi-model deliberation ("fusion") as a native [pi](https://github.com/earendil-works/pi-coding-agent) coding-agent extension.
 
@@ -20,7 +20,7 @@ A panel of up to 8 models answers your prompt independently and in parallel, an 
 ## Install
 
 ```bash
-pi install npm:@munstar0s/pi-shora        # from npm
+pi install npm:@munstar0s/pishora        # from npm
 pi install git:github.com/Munstar0s/PiShora  # from GitHub
 ```
 
