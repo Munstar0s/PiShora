@@ -59,11 +59,13 @@ Multiple deliberations can run at the same time — each independently configure
 
 ## Roles
 
-| Role | Purpose | Default |
+| Role | Purpose | Configured via |
 |---|---|---|
-| **panel** | N independent models answering in parallel (1–8) | gemini-flash, gpt, claude-opus |
-| **analyst** | Compares panel responses → structured JSON (temperature 0) | gpt |
-| **judge** | Synthesizes the final answer from the analysis | claude-opus |
+| **panel** | N independent models answering in parallel (1–8) | `/pi-shora panel add/set` |
+| **analyst** | Compares panel responses → structured JSON (temperature 0) | `/pi-shora analyst` |
+| **judge** | Synthesizes the final answer from the analysis | `/pi-shora judge` |
+
+There are no hardcoded defaults — on first use Pi-Shora prompts you to pick models for each role and saves them as your `main` template.
 
 ## Output layout
 
